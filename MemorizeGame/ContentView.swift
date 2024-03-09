@@ -8,20 +8,58 @@
 import SwiftUI
 
 struct ContentView: View {
-    let emojis: [String] = ["👻","🎃","😈","😈"]
+    let emojis: [String] = ["👻","🎃","🕷️","😈", "💀","🕸️","🧙","🙀","👹","😱","☠️","🍭"]
+    @State var cardCount: Int = 4
+    
     var body: some View {
-        HStack {
-            HStack {
-                ForEach(emojis.indices,id: \.self){ index in
-                    CardView(content:emojis[index])
-                }
-            
+        VStack {
+            ScrollView{
+                cards
             }
-            
-        }
-        .foregroundColor(.orange)
-        .padding()
+            Spacer()
+            CardCountAdjusters
     }
+        .padding()
+}
+    
+    var cards: some View{
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) { //Horizontal Stack
+            ForEach(0..<cardCount,id: \.self){ index in
+                CardView(content:emojis[index])
+                    .aspectRatio(2/3,contentMode: .fit)
+            }
+        }
+            .foregroundColor(.orange)
+    }
+    
+    var CardCountAdjusters: some View {
+        HStack{
+            CardRemover //Card remover button
+            Spacer()
+            CardAdder //Card added button
+        }
+        .imageScale(.large) // make the buttons large
+        .font(.largeTitle)// make the buttons large
+    }
+    
+    func cardCountAdjuster(by offset: Int, symbol:String) -> some View{
+        Button(action: {
+            cardCount += offset
+        }, label: {
+            Image(systemName: symbol)
+        })
+        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count) //Disable if out of range
+    }
+    
+    var CardRemover: some View {
+         cardCountAdjuster(by:-1, symbol:"rectangle.stack.badge.minus.fill")
+    }
+    
+    var CardAdder: some View{
+        cardCountAdjuster(by:+1, symbol:"rectangle.stack.badge.plus.fill")
+    }
+    
+    
 }
 
 struct CardView: View {
@@ -31,14 +69,13 @@ struct CardView: View {
     var body: some View {
         ZStack{
             let base: RoundedRectangle = RoundedRectangle(cornerRadius: 12)
-            if isFaceUp{
+            Group{
                 base.fill(.white)
                 base.strokeBorder(lineWidth: 2)
                 Text(content).font(.largeTitle)
             }
-            else{
-                base.fill()
-            }
+            .opacity(isFaceUp ? 1 : 0)
+            base.fill().opacity(isFaceUp ? 0 : 1)
             
         }
         .rotation3DEffect(
